@@ -1,0 +1,28 @@
+services:
+  sensor:
+    build: ./rust-sensor
+    environment:
+      EVENT_INGEST_URL: http://backend:8000/api/events
+      RUST_LOG: info
+    depends_on: [backend]
+    ports:
+      - "2222:2222"
+      - "8080:8080"
+      - "2121:2121"
+      - "5433:5433"
+  backend:
+    build: ./python-backend
+    environment:
+      DATABASE_URL: sqlite:////data/honeypot.db
+      CORS_ORIGINS: http://localhost:3000
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-change-me-in-a-private-lab}
+    volumes: [backend-data:/data]
+    ports: ["8000:8000"]
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    depends_on: [backend]
+    ports: ["3000:3000"]
+volumes:
+  backend-data:
